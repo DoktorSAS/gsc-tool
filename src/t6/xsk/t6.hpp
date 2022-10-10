@@ -6,6 +6,7 @@
 #pragma once
 
 #include "utils/xsk/utils.hpp"
+#include "arc/xsk/arc.hpp"
 
 #include "assembler.hpp"
 #include "disassembler.hpp"

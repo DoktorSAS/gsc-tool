@@ -4,20 +4,22 @@
 // that can be found in the LICENSE file.
 
 #include "stdafx.hpp"
-#include "utils/xsk/utils.hpp"
-#include "experimental/iw5c/xsk/iw5c.hpp"
-#include "experimental/iw6c/xsk/iw6c.hpp"
-#include "experimental/s1c/xsk/s1c.hpp"
-#include "iw5/xsk/iw5.hpp"
-#include "iw6/xsk/iw6.hpp"
-#include "iw7/xsk/iw7.hpp"
+#include "utils/xsk/zlib.hpp"
+#include "utils/xsk/file.hpp"
+#include "utils/xsk/string.hpp"
+
+#include "iw5/xsk/iw5_pc.hpp"
+#include "iw5/xsk/iw5_ps.hpp"
+#include "iw5/xsk/iw5_xb.hpp"
+#include "iw6/xsk/iw6_ps.hpp"
+// #include "iw7/xsk/iw7.hpp"
 #include "iw8/xsk/iw8.hpp"
-#include "s1/xsk/s1.hpp"
-#include "s2/xsk/s2.hpp"
-#include "s4/xsk/s4.hpp"
-#include "h1/xsk/h1.hpp"
-#include "h2/xsk/h2.hpp"
-#include "t6/xsk/t6.hpp"
+// #include "s1/xsk/s1.hpp"
+// #include "s2/xsk/s2.hpp"
+// #include "s4/xsk/s4.hpp"
+// #include "h1/xsk/h1.hpp"
+// #include "h2/xsk/h2.hpp"
+// #include "t6/xsk/t6.hpp"
 
 namespace xsk
 {
@@ -96,42 +98,42 @@ auto overwrite_prompt(const std::string& file) -> bool
 namespace gsc
 {
 
-std::map<game, context::ptr> contexts;
+std::map<game, std::unique_ptr<context>> contexts;
 std::map<mode, std::function<void(game game, std::string file)>> funcs;
 bool zonetool = false;
 
-auto choose_resolver_file_name(uint32_t id, game& game) -> std::string
+/*auto choose_resolver_file_name(uint32_t id, game& game) -> std::string
 {
     switch (game)
     {
-        case game::iw5c:
-            return iw5c::resolver::token_name(static_cast<std::uint16_t>(id));
-        case game::iw6c:
-            return iw6c::resolver::token_name(static_cast<std::uint16_t>(id));
-        case game::s1c:
-            return s1c::resolver::token_name(static_cast<std::uint16_t>(id));
-        case game::iw5:
-            return iw5::resolver::token_name(static_cast<std::uint16_t>(id));
-        case game::iw6:
-            return iw6::resolver::token_name(static_cast<std::uint16_t>(id));
-        case game::iw7:
-            return iw7::resolver::token_name(id);
-        case game::iw8:
-            return iw8::resolver::token_name(id);
-        case game::s1:
-            return s1::resolver::token_name(static_cast<std::uint16_t>(id));
-        case game::s2:
-            return s2::resolver::token_name(static_cast<std::uint16_t>(id));
-        case game::s4:
-            return s4::resolver::token_name(id);
-        case game::h1:
-            return h1::resolver::token_name(static_cast<std::uint16_t>(id));
-        case game::h2:
-            return h2::resolver::token_name(static_cast<std::uint16_t>(id));
+        // case game::iw5c:
+        //     return iw5c::resolver::token_name(static_cast<std::uint16_t>(id));
+        // case game::iw6c:
+        //     return iw6c::resolver::token_name(static_cast<std::uint16_t>(id));
+        // case game::s1c:
+        //     return s1c::resolver::token_name(static_cast<std::uint16_t>(id));
+        // case game::iw5:
+        //     return iw5::resolver::token_name(static_cast<std::uint16_t>(id));
+        // case game::iw6:
+        //     return iw6::resolver::token_name(static_cast<std::uint16_t>(id));
+        // case game::iw7:
+        //     return iw7::resolver::token_name(id);
+        // case game::iw8:
+        //     return iw8::resolver::token_name(id);
+        // case game::s1:
+        //     return s1::resolver::token_name(static_cast<std::uint16_t>(id));
+        // case game::s2:
+        //     return s2::resolver::token_name(static_cast<std::uint16_t>(id));
+        // case game::s4:
+        //     return s4::resolver::token_name(id);
+        // case game::h1:
+        //     return h1::resolver::token_name(static_cast<std::uint16_t>(id));
+        // case game::h2:
+        //     return h2::resolver::token_name(static_cast<std::uint16_t>(id));
         default:
             return "";
     }
-}
+}*/
 
 void assemble_file(game game, std::string file)
 {
@@ -245,7 +247,7 @@ void disassemble_file(game game, std::string file)
         }
         else
         {
-            auto filename = choose_resolver_file_name(std::atoi(scriptid.data()), game);
+            auto filename = std::string("");//choose_resolver_file_name(std::atoi(scriptid.data()), game);
             auto count = file.find(scriptid);
 
             if (count != std::string::npos)
@@ -268,7 +270,7 @@ void disassemble_file(game game, std::string file)
 
 void compile_file(game game, std::string file)
 {
-    try
+    //try
     {
         auto& assembler = contexts[game]->assembler();
         auto& compiler = contexts[game]->compiler();
@@ -316,15 +318,15 @@ void compile_file(game game, std::string file)
             }
         }
     }
-    catch (const std::exception& e)
+    /*catch (const std::exception& e)
     {
         std::cerr << e.what() << '\n';
-    }
+    }*/
 }
 
 void decompile_file(game game, std::string file)
 {
-    try
+    //try
     {
         auto& disassembler = contexts[game]->disassembler();
 
@@ -389,7 +391,7 @@ void decompile_file(game game, std::string file)
         }
         else
         {
-            auto filename = choose_resolver_file_name(std::atoi(scriptid.data()), game);/*xsk::utils::string::va("%s_%04X", scriptid.data(),  std::atoi(scriptid.data()));*/
+            auto filename = std::string("");//choose_resolver_file_name(std::atoi(scriptid.data()), game);/*xsk::utils::string::va("%s_%04X", scriptid.data(),  std::atoi(scriptid.data()));*/
             auto count = file.find(scriptid);
 
             if (count != std::string::npos)
@@ -404,38 +406,48 @@ void decompile_file(game game, std::string file)
             std::cout << "decompiled " << file << filename << ".gsc\n";
         }
     }
-    catch (const std::exception& e)
+    /*catch (const std::exception& e)
     {
         std::cerr << e.what() << " at " << file << '\n';
-    }
+    }*/
 }
 
 void init()
 {
-    contexts[game::iw5c] = std::make_unique<iw5c::context>();
-    contexts[game::iw5c]->init(build::prod, utils::file::read);
-    contexts[game::iw6c] = std::make_unique<iw6c::context>();
-    contexts[game::iw6c]->init(build::prod, utils::file::read);
-    contexts[game::s1c] = std::make_unique<s1c::context>();
-    contexts[game::s1c]->init(build::prod, utils::file::read);
-    contexts[game::iw5] = std::make_unique<iw5::context>();
+
+    contexts[game::iw5] = std::make_unique<iw5_pc::context>();
     contexts[game::iw5]->init(build::prod, utils::file::read);
-    contexts[game::iw6] = std::make_unique<iw6::context>();
-    contexts[game::iw6]->init(build::prod, utils::file::read);
-    contexts[game::iw7] = std::make_unique<iw7::context>();
-    contexts[game::iw7]->init(build::prod, utils::file::read);
+    contexts[game::iw5c] = std::make_unique<iw5_ps::context>();
+    contexts[game::iw5c]->init(build::prod, utils::file::read);
+    contexts[game::iw6c] = std::make_unique<iw6_ps::context>();
+    contexts[game::iw6c]->init(build::prod, utils::file::read);
+    // contexts[game::iw5] = std::make_unique<iw5_xb::context>();
+    // contexts[game::iw5]->init(build::prod, utils::file::read);
+
     contexts[game::iw8] = std::make_unique<iw8::context>();
     contexts[game::iw8]->init(build::prod, utils::file::read);
-    contexts[game::s1] = std::make_unique<s1::context>();
-    contexts[game::s1]->init(build::prod, utils::file::read);
-    contexts[game::s2] = std::make_unique<s2::context>();
-    contexts[game::s2]->init(build::prod, utils::file::read);
-    contexts[game::s4] = std::make_unique<s4::context>();
-    contexts[game::s4]->init(build::prod, utils::file::read);
-    contexts[game::h1] = std::make_unique<h1::context>();
-    contexts[game::h1]->init(build::prod, utils::file::read);
-    contexts[game::h2] = std::make_unique<h2::context>();
-    contexts[game::h2]->init(build::prod, utils::file::read);
+    // contexts[game::iw5c] = std::make_unique<iw5c::context>();
+    // contexts[game::iw5c]->init(build::prod, utils::file::read);
+    // contexts[game::iw6c] = std::make_unique<iw6c::context>();
+    // contexts[game::iw6c]->init(build::prod, utils::file::read);
+    // contexts[game::s1c] = std::make_unique<s1c::context>();
+    // contexts[game::s1c]->init(build::prod, utils::file::read);
+    // contexts[game::iw6] = std::make_unique<iw6::context>();
+    // contexts[game::iw6]->init(build::prod, utils::file::read);
+    // contexts[game::iw7] = std::make_unique<iw7::context>();
+    // contexts[game::iw7]->init(build::prod, utils::file::read);
+    // contexts[game::iw8] = std::make_unique<iw8::context>();
+    // contexts[game::iw8]->init(build::prod, utils::file::read);
+    // contexts[game::s1] = std::make_unique<s1::context>();
+    // contexts[game::s1]->init(build::prod, utils::file::read);
+    // contexts[game::s2] = std::make_unique<s2::context>();
+    // contexts[game::s2]->init(build::prod, utils::file::read);
+    // contexts[game::s4] = std::make_unique<s4::context>();
+    // contexts[game::s4]->init(build::prod, utils::file::read);
+    // contexts[game::h1] = std::make_unique<h1::context>();
+    // contexts[game::h1]->init(build::prod, utils::file::read);
+    // contexts[game::h2] = std::make_unique<h2::context>();
+    // contexts[game::h2]->init(build::prod, utils::file::read);
 
     funcs[mode::assemble] = assemble_file;
     funcs[mode::disassemble] = disassemble_file;
@@ -444,7 +456,7 @@ void init()
 }
 
 } // namespace xsk::gsc
-
+/*
 namespace arc
 {
 
@@ -555,7 +567,7 @@ void init()
 }
 
 } // namespace xsk::arc
-
+*/
 void execute(mode mode, game game, const std::string& path)
 {
     if (std::filesystem::is_directory(path))
@@ -566,8 +578,8 @@ void execute(mode mode, game game, const std::string& path)
             {
                 if (game < game::t6)
                     gsc::funcs[mode](game, entry.path().generic_string());
-                else
-                    arc::funcs[mode](game, std::filesystem::path(entry.path().generic_string(), std::filesystem::path::format::generic_format));
+                // else
+                //     arc::funcs[mode](game, std::filesystem::path(entry.path().generic_string(), std::filesystem::path::format::generic_format));
             }
         }
     }
@@ -575,8 +587,8 @@ void execute(mode mode, game game, const std::string& path)
     {
         if (game < game::t6)
             gsc::funcs[mode](game, path);
-        else
-            arc::funcs[mode](game, std::filesystem::path(path, std::filesystem::path::format::generic_format));
+        // else
+        //     arc::funcs[mode](game, std::filesystem::path(path, std::filesystem::path::format::generic_format));
     }
 }
 
@@ -730,7 +742,7 @@ void main(std::uint32_t argc, char** argv)
     game game = game::_;
 
     gsc::init();
-    arc::init();
+    //arc::init();
 /*
     if (argc <= 1)
     {

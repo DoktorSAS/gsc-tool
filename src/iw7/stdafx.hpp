@@ -24,5 +24,3 @@
 #include <vector>
 
 using namespace std::literals;
-
-#include "xsk/iw7.hpp"
